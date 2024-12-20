@@ -35,14 +35,6 @@ def crawl_jobs(base_url, max_pages=5):
                 job_detail_url=f"{base_url}{job_link}"
                 job_detail = crawl_jobs_detail(job_detail_url)
 
-                # Extract job location
-                # location_tag = card.find('span', class_='job-location')  # Adjust class name if needed
-                # job_location = location_tag.text.strip() if location_tag else "Not specified"
-
-                # Extract company name
-                # job_desc = card.find('section', class_='section-job-description')  # Adjust class name if needed
-                # company_name = job_desc.text.strip() if job_desc else "Not specified"
-
                 # Store the job details in a dictionary
                 jobs.append({
                     'Title': job_title,
