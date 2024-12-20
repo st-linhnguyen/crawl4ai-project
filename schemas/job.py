@@ -27,3 +27,10 @@ class Job(BaseModel):
   more_info: str
   job_group: str
   is_featured: str
+
+class JobDetail_(BaseModel):
+  job_title: str
+  job_url: str
+
+class JobList(BaseModel):
+  jobs: list[JobDetail_]

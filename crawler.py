@@ -5,9 +5,11 @@ import html2text
 import json
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
+
+from schemas.job import Job, JobList
 
 load_dotenv()
-print(os.environ['CONJURE_API_KEY'])
 
 # Function to crawl job listings
 def crawl_jobs(base_url, max_pages=5):
@@ -85,6 +87,57 @@ def crawl_jobs_detail(job_detail_url):
     'Benefit': job_benefit
   }
 
+def crawl_jobs_with_ai(url):
+  print(os.environ['OPENAI_API_KEY'])
+  openAIClient = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+  h = html2text.HTML2Text()
+
+  response = requests.get(url)
+  if response.status_code != 200:
+    print(f"Failed to fetch {url}")
+
+  web_content = h.handle(response.text)
+
+  job_list = openAIClient.beta.chat.completions.parse(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "system",
+            "content": f"You are an expert at structured data extraction. You will be given a pages content of a jobs hiring website, you should extract all the jobs available.",
+        },
+        {"role": "user", "content": web_content},
+    ],
+    response_format=JobList,
+  )
+
+  print(job_list)
+  return job_list.choices[0].message.parsed
+
+
+def crawl_job_detail_with_ai(url):
+  openAIClient = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+  h = html2text.HTML2Text()
+
+  response = requests.get(url)
+  if response.status_code != 200:
+    print(f"Failed to fetch {url}")
+
+  web_content = h.handle(response.text)
+
+  job_detail = openAIClient.beta.chat.completions.parse(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "system",
+            "content": f"You are an expert at structured data extraction. You will be given a pages content of a jobs hiring website, you should extract job information from job list and job detail based on the schema. Also return a field 'position_appeal' will be the charm of job position. The job position appeal is the most attractive feature of the job position. It is the reason why a candidate would want to apply for the job. The position appeal should be extracted from the job detail page. The position appeal should be a short sentence that describes the most attractive feature of the job position.",
+        },
+        {"role": "user", "content": web_content},
+    ],
+    response_format=Job,
+  )
+  return job_detail.choices[0].message.parsed
+
+
 def send_data_to_api():
   data_file="jobs.json"
 
@@ -119,11 +172,14 @@ if __name__ == "__main__":
   max_pages = 2  # Adjust the number of pages to crawl
 
   # Crawl the job data
-  job_data = crawl_jobs(base_url, max_pages)
+  # job_data = crawl_jobs(base_url, max_pages)
 
   # Save to a CSV file
-  df = pd.DataFrame(job_data)
-  df.to_json("jobs.json", orient="records")
-  print(f"Saved {len(job_data)} job listings to jobs.csv")
+  # df = pd.DataFrame(job_data)
+  # df.to_json("jobs.json", orient="records")
+  # print(f"Saved {len(job_data)} job listings to jobs.csv")
 
-  send_data_to_api()
+  # send_data_to_api()
+
+  job_list = crawl_jobs_with_ai("https://agent.herp.cloud/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0")
+  print(job_list)
