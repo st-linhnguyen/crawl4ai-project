@@ -1,0 +1,22 @@
+{
+  "startUrl": "https://www.talenten.vn/en/jobs",
+  "maxDepth": 2,
+  "selectors": {
+    "title": {
+      "type": "CSS",
+      "value": "h1.title"
+    },
+    "description": {
+      "type": "CSS",
+      "value": "meta[name='description']",
+      "attribute": "content"
+    },
+    "links": {
+      "type": "CSS",
+      "value": "a",
+      "attribute": "href"
+    }
+  },
+  "outputFormat": "json",
+  "outputFile": "crawled_data.json"
+}
