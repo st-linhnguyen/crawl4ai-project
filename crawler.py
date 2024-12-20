@@ -1,8 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-from urllib.parse import urlparse
 import html2text
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+print(os.environ['CONJURE_API_KEY'])
 
 # Function to crawl job listings
 def crawl_jobs(base_url, max_pages=5):
@@ -79,15 +84,46 @@ def crawl_jobs_detail(job_detail_url):
     'Requirement': job_requirement,
     'Benefit': job_benefit
   }
+
+def send_data_to_api():
+  data_file="jobs.json"
+
+  try:
+    # Load crawled data from file
+    with open(data_file, "r") as f:
+      crawled_data = json.load(f)
+
+    requestBody = {
+      "data": crawled_data
+    }
+
+    # Send each data entry to the API
+    headers = {
+      "Content-Type": "application/json",
+      "x-key-conjure": os.environ['CONJURE_API_KEY']
+    }
+    response = requests.post(os.environ['CONJURE_API_URL'], json=requestBody, headers=headers)
+    if response.status_code == 200:
+      print(f"Successfully sent data to API: {response.text}")
+    else:
+      print(f"Failed to send data: {response.status_code}, {response.text}")
+
+  except FileNotFoundError:
+    print(f"File {data_file} not found. Ensure the crawler ran successfully.")
+  except Exception as e:
+    print(f"Error sending data to API: {e}")
+
 # Main function
 if __name__ == "__main__":
-    base_url = "https://www.talenten.vn"
-    max_pages = 2  # Adjust the number of pages to crawl
+  base_url = "https://www.talenten.vn"
+  max_pages = 2  # Adjust the number of pages to crawl
 
-    # Crawl the job data
-    job_data = crawl_jobs(base_url, max_pages)
+  # Crawl the job data
+  job_data = crawl_jobs(base_url, max_pages)
 
-    # Save to a CSV file
-    df = pd.DataFrame(job_data)
-    df.to_json("jobs.json", orient="records")
-    print(f"Saved {len(job_data)} job listings to jobs.csv")
+  # Save to a CSV file
+  df = pd.DataFrame(job_data)
+  df.to_json("jobs.json", orient="records")
+  print(f"Saved {len(job_data)} job listings to jobs.csv")
+
+  send_data_to_api()

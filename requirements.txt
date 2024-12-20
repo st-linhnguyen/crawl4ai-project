@@ -2,4 +2,4 @@ requests
 bs4
 pandas
 html2text
-langchain_community
+dotenv
