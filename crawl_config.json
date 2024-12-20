@@ -4,17 +4,15 @@
   "selectors": {
     "title": {
       "type": "CSS",
-      "value": "h1.title"
+      "value": "h2.txt-h3"
     },
     "description": {
       "type": "CSS",
-      "value": "meta[name='description']",
-      "attribute": "content"
+      "value": "section.section-job-description"
     },
-    "links": {
+    "location": {
       "type": "CSS",
-      "value": "a",
-      "attribute": "href"
+      "value": "span.ant-typography"
     }
   },
   "outputFormat": "json",
