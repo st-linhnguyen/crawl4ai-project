@@ -4,3 +4,4 @@ pandas
 html2text
 dotenv
 openai
+selenium
