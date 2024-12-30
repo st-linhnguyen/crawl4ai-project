@@ -4,11 +4,36 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from selenium import webdriver
+import asyncio
+from playwright.async_api import async_playwright
 import time
 
 from schemas.job import Job, JobList
 
 load_dotenv()
+
+async def crawl_and_extract(url):
+  async with async_playwright() as p:
+    browser = await p.chromium.launch(headless=True)
+    page = await browser.new_page()
+
+    # Navigate to the URL
+    await page.goto(url)
+    content = await page.content()  # Get the page content
+    await browser.close()
+
+  # Extract information using OpenAI
+  openAIClient = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+  response = openAIClient.beta.chat.completions.parse(
+    model="gpt-4o-mini",
+    messages=[
+      {"role": "system", "content": "You are an expert at structured data extraction. You will be given a pages content of a jobs hiring website, you should extract all the jobs available."},
+      {"role": "user", "content": f"Extract useful information from this HTML: {content}"}
+    ],
+    response_format=JobList,
+  )
+  extracted_info = response['choices'][0]['message']['content']
+  return extracted_info
 
 def send_data_to_api(crawled_data):
   try:
@@ -106,10 +131,11 @@ def crawl_job_detail_with_selenium(base_url, job_list):
 # Main function
 if __name__ == "__main__":
   base_url = "https://agent.herp.cloud"
+  job_list=crawl_and_extract(f"{base_url}/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0")
 
-  job_list = crawl_job_list_with_selenium(f"{base_url}/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0")
+  # job_list = crawl_job_list_with_selenium(f"{base_url}/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0")
 
-  job_list_with_detail = crawl_job_detail_with_selenium(base_url, job_list)
-  print(job_list_with_detail)
+  # job_list_with_detail = crawl_job_detail_with_selenium(base_url, job_list)
+  # print(job_list_with_detail)
 
-  send_data_to_api(job_list_with_detail)
+  # send_data_to_api(job_list_with_detail)

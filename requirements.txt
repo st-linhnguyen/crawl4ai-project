@@ -5,3 +5,6 @@ html2text
 dotenv
 openai
 selenium
+fastapi
+inngest
+uvicorn
