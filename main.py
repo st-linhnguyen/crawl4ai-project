@@ -2,6 +2,8 @@ import logging
 from fastapi import FastAPI
 import inngest
 import inngest.fast_api
+import asyncio
+from crawler import start_crawl
 
 # Create an Inngest client
 inngest_client = inngest.Inngest(
@@ -18,7 +20,15 @@ inngest_client = inngest.Inngest(
 
 async def my_function(ctx: inngest.Context, step: inngest.Step) -> str:
   ctx.logger.info(ctx.event)
-  return "done"
+  urls = ctx.event.data['urls']
+  extracted_data = await start_crawl(urls)
+  # print(extracted_data)
+  jobs = extracted_data[0].jobs
+  result = [job.model_dump_json() for job in jobs]
+  print(result)
+  return result
+
+  # return "done 12313"
 
 app = FastAPI()
 

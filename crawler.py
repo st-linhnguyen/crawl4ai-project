@@ -32,7 +32,9 @@ async def crawl_and_extract(url):
     ],
     response_format=JobList,
   )
-  extracted_info = response['choices'][0]['message']['content']
+
+  extracted_info = response.choices[0].message.parsed
+  print(extracted_info)
   return extracted_info
 
 def send_data_to_api(crawled_data):
@@ -128,10 +130,28 @@ def crawl_job_detail_with_selenium(base_url, job_list):
     'jobs': jobs
   }
 
+async def start_crawl(urls):
+  print(urls)
+  tasks = [crawl_and_extract(url) for url in urls]
+  results = await asyncio.gather(*tasks)
+  return results
+
 # Main function
-if __name__ == "__main__":
-  base_url = "https://agent.herp.cloud"
-  job_list=crawl_and_extract(f"{base_url}/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0")
+# if __name__ == "__main__":
+#   base_url = "https://agent.herp.cloud"
+# # "urls": ["https://agent.herp.cloud/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0"]
+#   import sys
+#   import json
+#   # urls = json.loads(sys.argv[1])
+#   urls = [f"{base_url}/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0"]
+#   extracted_data = asyncio.run(main(urls))
+#   jobs = extracted_data[0].jobs
+
+#   print([job.model_dump_json() for job in jobs])
+
+#   result = [job.model_dump_json() for job in jobs]
+
+  # print(json.dumps(json.dumps(job) for job in extracted_data[0].jobs))
 
   # job_list = crawl_job_list_with_selenium(f"{base_url}/p/wn1kW5tvuVnPrFUClJQdbN8-JLIpvkVpKdrhOdy0Xa0")
 
